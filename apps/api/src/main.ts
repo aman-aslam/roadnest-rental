@@ -20,6 +20,8 @@ async function bootstrap() {
   });
   app.setGlobalPrefix('api');
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true }));
-  await app.listen(Number(process.env.API_PORT ?? 4000));
+  await app.listen(
+    Number(process.env.PORT ?? process.env.API_PORT ?? 4000),
+  );
 }
 bootstrap();
