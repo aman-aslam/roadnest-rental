@@ -158,7 +158,6 @@ function parseVehicleRows(csvText: string): { vehicles: ParsedVehicle[]; errors:
   for (let i = 1; i < matrix.length; i++) {
     const row = matrix[i];
     const csvRow = i + 1;
-    const rowErrorCountBefore = errors.length;
     const type = cell(row, 'type').toUpperCase();
     const category = cell(row, 'category').toUpperCase();
     const fuelType = cell(row, 'fuelType').toUpperCase();
@@ -184,6 +183,18 @@ function parseVehicleRows(csvText: string): { vehicles: ParsedVehicle[]; errors:
     }
     if (!brand || !model || !displayName || !registrationNumber || !pickupLocation) {
       errors.push('CSV row ' + csvRow + ': brand, model, displayName, registrationNumber and pickupLocation are required.');
+    }
+    if (brand.length > 80 || model.length > 80 || displayName.length > 120 || pickupLocation.length > 160) {
+      errors.push('CSV row ' + csvRow + ': brand/model must be 80 characters or fewer, displayName 120 or fewer, and pickupLocation 160 or fewer.');
+    }
+    if (registrationNumber && !/^[A-Z0-9 -]{5,20}$/.test(registrationNumber)) {
+      errors.push('CSV row ' + csvRow + ': registrationNumber must be 5–20 letters, numbers, spaces or hyphens.');
+    }
+    if (cell(row, 'description').length > 2000) {
+      errors.push('CSV row ' + csvRow + ': description must be 2,000 characters or fewer.');
+    }
+    if (cell(row, 'features').split('|').filter(feature => feature.trim()).length > 30) {
+      errors.push('CSV row ' + csvRow + ': a vehicle can have at most 30 features.');
     }
     if (registrationNumber) {
       if (seenRegistrations.has(registrationNumber)) {
@@ -245,9 +256,6 @@ function parseVehicleRows(csvText: string): { vehicles: ParsedVehicle[]; errors:
     // Keep source row metadata out of the API DTO; it is used only in preview/results.
     vehicles.push({ csvRow, vehicle });
 
-    if (errors.length > rowErrorCountBefore) {
-      // The preview can still show this row, but import stays disabled until all errors are fixed.
-    }
   }
 
   if (vehicles.length > 100) errors.push('This import contains ' + vehicles.length + ' vehicles. The maximum is 100 per upload.');
