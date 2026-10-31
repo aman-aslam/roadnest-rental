@@ -114,6 +114,11 @@ export class VehiclesController {
     if (!files?.length) return { images: [] };
 
     const uploaded = await Promise.all(files.map(file => this.uploadToCloudinary(file)));
+    // Remove stale paths created by the old Render-local storage implementation.
+    // Those files cannot survive Render restarts or deploys.
+    await this.prisma.vehicleImage.deleteMany({
+      where: { vehicleId: id, url: { startsWith: '/vehicle-images/' } },
+    });
     const current = await this.prisma.vehicleImage.count({ where: { vehicleId: id } });
     const images = await this.prisma.vehicleImage.createMany({
       data: uploaded.map((asset, index) => ({
