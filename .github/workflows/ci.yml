@@ -1,0 +1,42 @@
+name: RoadNest CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Validate Prisma schema
+        run: npm exec --workspace=@roadnest/api -- prisma validate
+        env:
+          DATABASE_URL: postgresql://ci:ci@localhost:5432/roadnest
+
+      - name: Generate Prisma Client
+        run: npm run prisma:generate --workspace=@roadnest/api
+        env:
+          DATABASE_URL: postgresql://ci:ci@localhost:5432/roadnest
+
+      - name: Build API
+        run: npm run build --workspace=@roadnest/api
+
+      - name: Build web
+        run: npm run build --workspace=@roadnest/web
+        env:
+          NEXT_PUBLIC_API_URL: https://roadnest-api.onrender.com/api
