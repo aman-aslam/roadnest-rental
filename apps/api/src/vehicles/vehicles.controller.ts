@@ -6,6 +6,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { Roles } from '../common/roles.decorator';
 import { RolesGuard } from '../common/roles.guard';
 import { CreateVehicleDto } from './dto/create-vehicle.dto';
+import { BulkCreateVehiclesDto } from './dto/bulk-create-vehicles.dto';
 import { UpdateVehicleDto } from './dto/update-vehicle.dto';
 import { VehiclesService } from './vehicles.service';
 import { PrismaService } from '../prisma/prisma.service';
@@ -32,6 +33,13 @@ export class VehiclesController {
   @Get(':id')
   detail(@Param('id') id: string) {
     return this.vehicles.findOne(id);
+  }
+
+  @Post('bulk')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('ADMIN', 'STAFF')
+  bulkCreate(@Body() dto: BulkCreateVehiclesDto) {
+    return this.vehicles.bulkCreate(dto.vehicles);
   }
 
   @Post()
