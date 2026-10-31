@@ -1,7 +1,7 @@
 import { IsArray, IsBoolean, IsIn, IsInt, IsOptional, IsString, Min } from 'class-validator';
 export class CreateVehicleDto {
   @IsIn(['CAR','BIKE']) type!: 'CAR'|'BIKE';
-  @IsIn(['HATCHBACK','SEDAN','SUV','LUXURY','SPORTS_BIKE','SCOOTER','MOTORCYCLE','ELECTRIC_BIKE']) category!: string;
+  @IsIn(['HATCHBACK','SEDAN','SUV','MPV','LUXURY','SPORTS_BIKE','SCOOTER','MOTORCYCLE','ELECTRIC_BIKE']) category!: string;
   @IsString() brand!: string;
   @IsString() model!: string;
   @IsOptional() @IsString() variant?: string;
