@@ -6,5 +6,27 @@ import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { JwtStrategy } from './jwt.strategy';
 
-@Module({ imports: [PassportModule, JwtModule.registerAsync({ inject: [ConfigService], useFactory: (config: ConfigService) => ({ secret: config.get('JWT_SECRET') ?? 'development-secret-change-this-please', signOptions: { expiresIn: config.get('JWT_EXPIRES_IN') ?? '7d' } }) })], controllers: [AuthController], providers: [AuthService, JwtStrategy], exports: [JwtModule] })
+function requiredJwtSecret(config: ConfigService): string {
+  const secret = config.get<string>('JWT_SECRET')?.trim();
+  if (!secret || Buffer.byteLength(secret, 'utf8') < 32) {
+    throw new Error('JWT_SECRET must be configured and contain at least 32 bytes.');
+  }
+  return secret;
+}
+
+@Module({
+  imports: [
+    PassportModule,
+    JwtModule.registerAsync({
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({
+        secret: requiredJwtSecret(config),
+        signOptions: { expiresIn: config.get('JWT_EXPIRES_IN') ?? '7d' },
+      }),
+    }),
+  ],
+  controllers: [AuthController],
+  providers: [AuthService, JwtStrategy],
+  exports: [JwtModule],
+})
 export class AuthModule {}
