@@ -19,12 +19,12 @@ The project is split into a Next.js customer/admin web app and a NestJS REST API
 ### Shop admin / staff
 
 - Dashboard with fleet counts, availability, rented/maintenance counts, today's/upcoming bookings, monthly collections, pending rental amount and expenses.
-- Vehicle create/edit/archive, publishing/featured status, pricing, vehicle photo uploads and maintenance state.
+- Vehicle create/edit/archive, publishing/featured status, pricing, vehicle photo uploads, and maintenance state. Bulk CSV import supports up to 100 mixed cars and bikes per upload.
 - Central booking register for online, phone and walk-in bookings.
 - Walk-in booking entry, customer matching by mobile number and optional advance collection.
 - Confirm/reject/cancel booking, extend rental, record cash/UPI/card/bank payments, rental refunds and deposit refunds.
 - Customer list and driving-licence / ID document review.
-- Pickup and return inspection with odometer, fuel/battery, accessories, notes and condition photos.
+- Pickup and return inspection with odometer, fuel/battery, accessories, notes and condition photos stored in private object storage.
 - Extra-kilometre, late-return, fuel and damage charge calculations at return.
 - Maintenance records and availability blocks.
 - Expense entry, revenue ledger and printable booking agreement/receipt.
@@ -55,7 +55,7 @@ flowchart LR
   W -->|REST + HTTP-only session cookie| API[NestJS API]
   API --> S[Domain services: auth, fleet, bookings, operations, payments, reports]
   S --> P[(PostgreSQL / Prisma)]
-  API --> F[(Local media folders)]
+  API --> F[(Cloudinary vehicle images)]\n  API --> R2[(Private Cloudflare R2 documents and handover photos)]
   API <--> R[Razorpay Orders / Checkout / Webhook]
 ```
 
@@ -93,7 +93,7 @@ Important relationships: a customer has many bookings and documents; a vehicle h
 | `/account` | Customer bookings, documents, notifications and payments |
 | `/account/bookings/[id]/print` | Printable receipt / agreement view (customer or staff) |
 | `/admin` | Shop dashboard and operations navigation |
-| `/admin/vehicles` | Fleet management and photo uploads |
+| `/admin/vehicles` | Fleet management and photo uploads |\n| `/admin/vehicles/bulk` | CSV bulk import for up to 100 cars/bikes |
 | `/admin/bookings` | Booking register and status/payment actions |
 | `/admin/walk-in` | Counter booking entry |
 | `/admin/bookings/[id]/handover` | Pickup / return inspection |
@@ -284,13 +284,53 @@ In-app notifications are stored in the database and shown in the customer accoun
 
 Before a public production launch, complete at least the following work:
 
-1. Replace local disk uploads with private object storage (for example, S3-compatible storage), add malware scanning, signed download links and retention rules. Customer ID and licence files are sensitive personal data.
+1. Configure Cloudinary for public vehicle photos and a private Cloudflare R2 bucket for customer documents and handover photos. Keep the R2 bucket private; the API signs server-to-server object requests and serves files only through authenticated endpoints. Add malware scanning, retention rules and a documented deletion process before accepting sensitive customer documents.
 2. Add email/mobile verification, password reset, login rate limiting, stronger session/CSRF controls, staff invitation and admin MFA.
 3. Review legal rental terms, cancellation and refund policy, customer consent, privacy notice, insurance, licence verification and applicable local regulations with a qualified professional.
-4. Configure TLS, secure cookies, strict CORS, backups, monitoring, audit-log retention, secrets management and a production database migration pipeline.
+4. Configure the same-origin Next.js API proxy (`NEXT_PUBLIC_API_URL=/api`, `API_ORIGIN=https://roadnest-api.onrender.com`), API `WEB_ORIGIN`, TLS, `COOKIE_SECURE=true`, backups, monitoring, audit-log retention, secrets management and the Render pre-deploy migration command.
 5. Add automated tests for booking race conditions, booking extension, deposits, cancellations, partial payments, refunds, late returns and maintenance overlap.
 6. Connect a production SMS/email provider and Google Maps only after adding and securing their credentials.
 
 ## Validation status
 
 This package has been created as a functional source-code starter, but a full build and end-to-end runtime test could not be completed in the creation environment because npm package installation was blocked by a network/DNS failure. Run the install and migration steps above, then execute `npm run build` and test all workflows in your own environment before deployment.
+
+## Production deployment (Render + Neon)
+
+The repository includes a GitHub Actions workflow that installs from the root lockfile, validates the Prisma schema, generates Prisma Client, and builds both workspaces.
+
+### Render API service
+
+- Root directory: `apps/api`
+- Build command: `npm install && npx prisma generate && npx nest build`
+- Start command: `node dist/src/main.js`
+- Pre-deploy command: `npx prisma migrate deploy` (applies checked-in migrations, including the MPV category migration)
+
+Required API environment variables:
+
+| Variable | Purpose |
+|---|---|
+| `DATABASE_URL` | Neon PostgreSQL pooled connection string with SSL |
+| `JWT_SECRET` | Random secret of at least 32 bytes |
+| `COOKIE_SECURE` | Set to `true` in production |
+| `WEB_ORIGIN` | Exact browser origin, e.g. `https://roadnest-web.onrender.com` |
+| `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` | Public vehicle image uploads |
+| `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET_NAME` | Private customer document and handover-photo storage |
+
+Optional AI variables are `OPENAI_API_KEY`, `OPENAI_BASE_URL`, and `OPENAI_MODEL`. Keep every secret on the API service; never add them to `NEXT_PUBLIC_*` variables or commit them to Git.
+
+### Render web service
+
+- Root directory: `apps/web`
+- Build command: `npm install && npm run build`
+- Start command: `npm run start`
+- `NEXT_PUBLIC_API_URL=/api`
+- `API_ORIGIN=https://roadnest-api.onrender.com`
+
+The Next.js rewrites proxy `/api/*` and legacy `/vehicle-images/*` through the web origin. This lets the browser keep the HTTP-only session cookie on the frontend origin rather than depending on cross-site third-party cookies.
+
+### Private R2 bucket
+
+Create a private R2 bucket and an S3-compatible access key limited to that bucket with object read/write permissions. Do not enable public bucket access for identity documents. The API stores generated object keys in Neon; file downloads require an authenticated admin/staff session. New uploads fail with a clear service error until all four R2 environment variables are configured.
+
+Existing vehicle, booking and user rows are not deleted by these changes. Existing files that were stored on Render's ephemeral filesystem may need to be uploaded again if the old files have already disappeared.
