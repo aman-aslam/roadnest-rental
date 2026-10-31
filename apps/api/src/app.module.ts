@@ -12,6 +12,21 @@ import { NotificationsModule } from './notifications/notifications.module';
 import { AiModule } from './ai/ai.module';
 
 @Module({
-  imports: [ConfigModule.forRoot({ isGlobal: true }), ScheduleModule.forRoot(), PrismaModule, AuthModule, VehiclesModule, BookingsModule, OperationsModule, PaymentsModule, ReportsModule, NotificationsModule, AiModule],
+  imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: '.env',
+    }),
+    ScheduleModule.forRoot(),
+    PrismaModule,
+    AuthModule,
+    VehiclesModule,
+    BookingsModule,
+    OperationsModule,
+    PaymentsModule,
+    ReportsModule,
+    NotificationsModule,
+    AiModule,
+  ],
 })
 export class AppModule {}

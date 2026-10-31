@@ -1,12 +1,23 @@
-node_modules
-.next
-dist
+
+# Dependencies and build output
+node_modules/
+.next/
+dist/
+coverage/
+
+# Environment variables and secrets
 .env
-.env.local
-coverage
+.env.*
+!.env.example
+!.env.*.example
+
+# Uploaded files
 apps/api/uploads/*
 !apps/api/uploads/.gitkeep
-apps/api/public/vehicle-images/*
-!apps/api/public/vehicle-images/.gitkeep
+!apps/api/uploads/handover/
 apps/api/uploads/handover/*
 !apps/api/uploads/handover/.gitkeep
+
+# Vehicle images
+apps/api/public/vehicle-images/*
+!apps/api/public/vehicle-images/.gitkeep

@@ -26,10 +26,28 @@ export class AiService {
   private readonly model: string;
   private readonly baseUrl: string;
 
-  constructor(config: ConfigService, private readonly prisma: PrismaService) {
-    this.apiKey = config.get<string>('OPENAI_API_KEY') || '';
-    this.model = config.get<string>('OPENAI_MODEL') || 'gpt-4o-mini';
-    this.baseUrl = (config.get<string>('OPENAI_BASE_URL') || 'https://api.openai.com/v1').replace(/\/$/, '');
+ constructor(
+  config: ConfigService,
+  private readonly prisma: PrismaService,
+  ) {
+    this.apiKey =
+      config.get<string>('OPENAI_API_KEY')?.trim() || '';
+
+    this.model =
+      config.get<string>('OPENAI_MODEL') ||
+      'gpt-4o-mini';
+
+    this.baseUrl = (
+      config.get<string>('OPENAI_BASE_URL') ||
+      'https://api.openai.com/v1'
+    ).replace(/\/+$/, '');
+
+    console.log('AI CONFIG CHECK:', {
+      apiKeyLoaded: Boolean(this.apiKey),
+      apiKeyLength: this.apiKey.length,
+      baseUrl: this.baseUrl,
+      model: this.model,
+    });
   }
 
   private async completion(messages: any[], json = false): Promise<string> {
@@ -52,7 +70,15 @@ export class AiService {
     }
     if (!response.ok) {
       const detail = await response.text().catch(() => '');
-      throw new BadGatewayException(`AI provider error (${response.status}). ${detail.slice(0, 250)}`);
+
+      console.error('OPENROUTER ERROR:', {
+        status: response.status,
+        detail,
+      });
+
+      throw new BadGatewayException(
+        `AI provider error (${response.status}). ${detail.slice(0, 500)}`,
+      );
     }
     const payload: any = await response.json();
     const content = payload.choices?.[0]?.message?.content;
@@ -70,6 +96,7 @@ Analyse only details that are reasonably visible or inferable from the supplied 
 type (CAR or BIKE), category (one of HATCHBACK, SEDAN, SUV, LUXURY, SPORTS_BIKE, SCOOTER, MOTORCYCLE, ELECTRIC_BIKE), brand, model, variant, displayName, color, fuelType (PETROL, DIESEL, ELECTRIC, HYBRID, CNG or null), transmission (MANUAL, AUTOMATIC or null), seats (number or null), engineCc (number or null), features (string array), description (short factual listing description), confidence (object mapping each suggested field to high/medium/low), needsVerification (string array).
 Do not infer registration number, exact model year, exact variant, engine capacity, legal ownership, or unseen mechanical features from appearance. For uncertain specifications use null or a low confidence rating and explain them in needsVerification. Do not include price or registration number. Output JSON only.`;
     const content = await this.completion([{ role: 'user', content: [{ type: 'text', text: prompt }, ...imageParts] }], true);
+    console.log('AI RAW RESPONSE:', content);
     try {
       const draft = JSON.parse(content) as AiVehicleDraft;
       if (!['CAR', 'BIKE'].includes(draft.type)) draft.type = 'CAR';
@@ -97,46 +124,97 @@ Do not infer registration number, exact model year, exact variant, engine capaci
     return vehicles.filter(v => (!type || v.type === type) && (!maxDaily || v.dailyRatePaise <= maxDaily)).slice(0, 4);
   }
 
+
   async chat(message: string) {
     const vehicles = await this.prisma.vehicle.findMany({
-      where: { isPublished: true, status: { not: 'INACTIVE' } },
-      include: { images: { orderBy: { sortOrder: 'asc' }, take: 1 } },
-      orderBy: [{ isFeatured: 'desc' }, { dailyRatePaise: 'asc' }],
+      where: {
+        isPublished: true,
+        status: { not: 'INACTIVE' },
+      },
+      include: {
+        images: {
+          orderBy: { sortOrder: 'asc' },
+          take: 1,
+        },
+      },
+      orderBy: [
+        { isFeatured: 'desc' },
+        { dailyRatePaise: 'asc' },
+      ],
       take: 50,
     });
+
     if (!vehicles.length) {
-      return { answer: 'Our fleet is being updated right now. Please check again shortly or contact the shop for help.', vehicles: [] };
+      return {
+        answer: 'Our fleet is being updated right now. Please check again shortly.',
+        vehicles: [],
+      };
     }
 
-    if (!this.apiKey) {
-      const matches = this.fallbackMatches(message, vehicles);
+    // Match vehicles using actual database data.
+    const matches = this.fallbackMatches(message, vehicles);
+
+    if (!matches.length) {
       return {
-        answer: matches.length
-          ? `Here are a few RoadNest vehicles that may fit your request. These are catalogue matches; choose your dates on a vehicle page to confirm live availability.`
-          : 'I can help you choose a car or bike. Tell me your vehicle type and approximate daily budget, for example: “SUV under ₹3,000 per day”.',
+        answer: 'I could not find a vehicle matching your request. Try a different vehicle type or daily budget.',
+        vehicles: [],
+      };
+    }
+
+    // Provide useful matching results even without an AI API key.
+    if (!this.apiKey) {
+      return {
+        answer: 'Here are some vehicles matching your request. Please check the vehicle page for availability.',
         vehicles: matches.map(v => this.publicVehicle(v)),
         aiConfigured: false,
       };
     }
 
-    const inventory = vehicles.map(v => ({
-      id: v.id, name: v.displayName, type: v.type, category: v.category, brand: v.brand,
-      model: v.model, fuel: v.fuelType, transmission: v.transmission, seats: v.seats,
-      dailyRateINR: Math.round(v.dailyRatePaise / 100), depositINR: Math.round(v.securityDepositPaise / 100),
-      status: v.status,
+    const inventory = matches.map(v => ({
+      name: v.displayName,
+      type: v.type,
+      category: v.category,
+      dailyRateINR: Math.round(v.dailyRatePaise / 100),
+      depositINR: Math.round(v.securityDepositPaise / 100),
     }));
+
+    // AI generates the explanation only.
+    // Vehicle selection is handled by the backend.
     const content = await this.completion([
-      { role: 'system', content: `You are RoadNest's friendly rental planning assistant for one local rental shop in India. Only recommend vehicles from the supplied inventory. Never invent vehicle names, prices, availability, features or booking confirmation. Answer in concise, helpful English. The inventory contains catalogue facts only, not live availability. If a customer provides dates, explicitly say availability must be checked on the vehicle page. Give one useful clarifying question if the request is vague. Format a JSON object: { "answer": string, "vehicleIds": string[] }. Select IDs only from inventory. For budget questions compare daily rates in INR. Do not claim any reservation has been made.` },
-      { role: 'user', content: `Customer request: ${message}\nCurrent RoadNest vehicle inventory JSON: ${JSON.stringify(inventory)}` },
-    ], true);
-    try {
-      const parsed = JSON.parse(content);
-      const ids = Array.isArray(parsed.vehicleIds) ? parsed.vehicleIds.filter((id: string) => vehicles.some(v => v.id === id)).slice(0, 4) : [];
-      return { answer: String(parsed.answer || 'Tell me a little more about the vehicle you need.'), vehicles: ids.map((id: string) => this.publicVehicle(vehicles.find(v => v.id === id))) };
-    } catch {
-      return { answer: 'Tell me your preferred vehicle type, dates and daily budget. I can then narrow down the RoadNest fleet.', vehicles: [] };
-    }
+      {
+        role: 'system',
+        content: `
+          You are RoadNest's friendly rental assistant.
+
+          Recommend only vehicles from the supplied inventory.
+          Use the exact vehicle names and daily prices supplied.
+          Never invent availability or booking confirmation.
+          Keep the response friendly and concise.
+          Ask one useful follow-up question when appropriate.
+          Respond in plain text, NOT JSON.
+        `,
+      },
+      {
+        role: 'user',
+        content: `
+          Customer request: ${message}
+
+          Matching RoadNest inventory:
+          ${JSON.stringify(inventory)}
+
+          Recommend these matching vehicles and explain why they fit.
+          Mention that availability must be confirmed for the requested dates.
+        `,
+      },
+    ]);
+
+    return {
+      answer: content.trim(),
+      vehicles: matches.map(v => this.publicVehicle(v)),
+      aiConfigured: true,
+    };
   }
+
 
   private publicVehicle(v: any) {
     return {
