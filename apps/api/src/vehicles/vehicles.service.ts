@@ -36,8 +36,25 @@ export class VehiclesService {
     return vehicle;
   }
   async create(dto: CreateVehicleDto) {
+    const carCategories = ['HATCHBACK', 'SEDAN', 'SUV', 'MPV', 'LUXURY'];
+    const bikeCategories = ['SPORTS_BIKE', 'SCOOTER', 'MOTORCYCLE', 'ELECTRIC_BIKE'];
+    const validCategories = dto.type === 'CAR' ? carCategories : bikeCategories;
+    if (!validCategories.includes(dto.category)) {
+      throw new BadRequestException(`Category ${dto.category} is not valid for ${dto.type} vehicles.`);
+    }
+
     const { images = [], ...data } = dto;
-    return this.prisma.vehicle.create({ data: { ...(data as any), isElectric: (data as any).isElectric ?? (data as any).fuelType === 'ELECTRIC', images: { create: images.map((url, index) => ({ url, sortOrder: index })) } }, include: { images: true } });
+    return this.prisma.vehicle.create({
+      data: {
+        ...(data as any),
+        registrationNumber: data.registrationNumber.trim().toUpperCase(),
+        isElectric: (data as any).isElectric ?? (data as any).fuelType === 'ELECTRIC',
+        images: {
+          create: images.map((url, index) => ({ url, sortOrder: index })),
+        },
+      },
+      include: { images: true },
+    });
   }
   async bulkCreate(vehicles: CreateVehicleDto[]) {
     const results: Array<{
