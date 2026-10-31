@@ -9,13 +9,49 @@ import { LoginDto } from './dto/login.dto';
 @Controller('auth')
 export class AuthController {
   constructor(private auth: AuthService, private config: ConfigService) {}
-  private cookieOptions() { return { httpOnly: true, secure: this.config.get('COOKIE_SECURE') === 'true', sameSite: 'lax' as const, path: '/', maxAge: 7 * 24 * 60 * 60 * 1000 }; }
-  @Post('register') async register(@Body() dto: RegisterDto, @Res({ passthrough: true }) res: Response) {
-    const result = await this.auth.register(dto); res.cookie('rn_token', result.token, this.cookieOptions()); return { user: result.user };
+
+  private cookieBaseOptions() {
+    const secure = this.config.get('COOKIE_SECURE') === 'true';
+    return {
+      httpOnly: true,
+      secure,
+      // The frontend and API are on different Render hostnames. In production,
+      // allow the API cookie on cross-origin fetches and require HTTPS.
+      sameSite: (secure ? 'none' : 'lax') as const,
+      path: '/',
+    };
   }
-  @Post('login') async login(@Body() dto: LoginDto, @Res({ passthrough: true }) res: Response) {
-    const result = await this.auth.login(dto); res.cookie('rn_token', result.token, this.cookieOptions()); return { user: result.user };
+
+  private cookieOptions() {
+    return {
+      ...this.cookieBaseOptions(),
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    };
   }
-  @Post('logout') logout(@Res({ passthrough: true }) res: Response) { res.clearCookie('rn_token', { httpOnly: true, sameSite: 'lax', path: '/' }); return { ok: true }; }
-  @Get('me') @UseGuards(AuthGuard('jwt')) me(@Req() req: Request & { user: any }) { return { user: req.user }; }
+
+  @Post('register')
+  async register(@Body() dto: RegisterDto, @Res({ passthrough: true }) res: Response) {
+    const result = await this.auth.register(dto);
+    res.cookie('rn_token', result.token, this.cookieOptions());
+    return { user: result.user };
+  }
+
+  @Post('login')
+  async login(@Body() dto: LoginDto, @Res({ passthrough: true }) res: Response) {
+    const result = await this.auth.login(dto);
+    res.cookie('rn_token', result.token, this.cookieOptions());
+    return { user: result.user };
+  }
+
+  @Post('logout')
+  logout(@Res({ passthrough: true }) res: Response) {
+    res.clearCookie('rn_token', this.cookieBaseOptions());
+    return { ok: true };
+  }
+
+  @Get('me')
+  @UseGuards(AuthGuard('jwt'))
+  me(@Req() req: Request & { user: any }) {
+    return { user: req.user };
+  }
 }
