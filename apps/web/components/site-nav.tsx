@@ -1,7 +1,7 @@
 'use client';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { CarFront, Bike, Menu, UserRound, Gauge } from 'lucide-react';
+import { CarFront, Bike, Menu, UserRound, Gauge, Sparkles } from 'lucide-react';
 import { useState } from 'react';
 
 export function SiteNav() {
@@ -13,6 +13,7 @@ export function SiteNav() {
     <nav className={open?'nav-links open':'nav-links'}>
       <Link className={pathname==='/vehicles'?'active':''} href="/vehicles?type=CAR"><CarFront size={16}/> Cars</Link>
       <Link href="/vehicles?type=BIKE"><Bike size={16}/> Bikes</Link>
+      <Link className={pathname==='/ai-planner'?'active':''} href="/ai-planner"><Sparkles size={15}/> AI planner</Link>
       <Link href="/#how-it-works">How it works</Link>
       <Link href="/account"><UserRound size={16}/> My bookings</Link>
     </nav>
