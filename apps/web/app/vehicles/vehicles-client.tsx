@@ -16,7 +16,7 @@ export default function VehiclesPage() {
     api<any[]>(`/vehicles?${q.toString()}`).then(data=>{setVehicles(data);setError('');}).catch(e=>setError(e.message)).finally(()=>setLoading(false));
   },[type,category,search,fuel,transmission,brand,maxRate,pickupAt,returnAt,location]);
   const list=[...vehicles].sort((a,b)=>sort==='price-low'?a.dailyRatePaise-b.dailyRatePaise:sort==='price-high'?b.dailyRatePaise-a.dailyRatePaise:sort==='newest'?(b.year||0)-(a.year||0):Number(b.isFeatured)-Number(a.isFeatured));
-  const categories=type==='CAR'?['HATCHBACK','SEDAN','SUV','LUXURY']:type==='BIKE'?['SPORTS_BIKE','SCOOTER','MOTORCYCLE','ELECTRIC_BIKE']:['HATCHBACK','SEDAN','SUV','LUXURY','SPORTS_BIKE','SCOOTER','MOTORCYCLE','ELECTRIC_BIKE'];
+  const categories=type==='CAR'?['HATCHBACK','SEDAN','SUV','MPV','LUXURY']:type==='BIKE'?['SPORTS_BIKE','SCOOTER','MOTORCYCLE','ELECTRIC_BIKE']:['HATCHBACK','SEDAN','SUV','MPV','LUXURY','SPORTS_BIKE','SCOOTER','MOTORCYCLE','ELECTRIC_BIKE'];
   function clear(){setType('');setCategory('');setFuel('');setTransmission('');setBrand('');setMaxRate('');setSearch('');}
   return <main className="page-shell"><section className="page-hero container"><div><span className="section-kicker">OUR VEHICLE COLLECTION</span><h1>Find your <em>next ride.</em></h1><p>Explore the vehicles in our local fleet, compare rates, and book the one that fits your plan.</p></div><div className="page-hero-art">🚘 <span>＋</span> 🏍️</div></section>
     <section className="container listing-layout"><aside className="filter-panel"><div className="filter-heading"><SlidersHorizontal size={17}/><strong>Filters</strong></div>
