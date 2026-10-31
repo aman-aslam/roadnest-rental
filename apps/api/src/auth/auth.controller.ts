@@ -12,7 +12,9 @@ export class AuthController {
 
   private cookieBaseOptions() {
     const secure = this.config.get('COOKIE_SECURE') === 'true';
-    const sameSite: 'none' | 'lax' = secure ? 'none' : 'lax';
+    // The web app proxies /api through its own origin, so Lax avoids third-party
+    // cookies while still allowing the authenticated same-origin browser flow.
+    const sameSite: 'lax' = 'lax';
 
     return {
       httpOnly: true,
