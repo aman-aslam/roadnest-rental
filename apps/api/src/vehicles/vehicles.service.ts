@@ -39,6 +39,51 @@ export class VehiclesService {
     const { images = [], ...data } = dto;
     return this.prisma.vehicle.create({ data: { ...(data as any), isElectric: (data as any).isElectric ?? (data as any).fuelType === 'ELECTRIC', images: { create: images.map((url, index) => ({ url, sortOrder: index })) } }, include: { images: true } });
   }
+  async bulkCreate(vehicles: CreateVehicleDto[]) {
+    const results: Array<{
+      row: number;
+      success: boolean;
+      id?: string;
+      displayName?: string;
+      registrationNumber: string;
+      error?: string;
+    }> = [];
+
+    // Process rows independently so one duplicate registration does not block
+    // the other vehicles in the same spreadsheet.
+    for (let index = 0; index < vehicles.length; index++) {
+      const vehicle = vehicles[index];
+      try {
+        const created = await this.create(vehicle);
+        results.push({
+          row: index + 1,
+          success: true,
+          id: created.id,
+          displayName: created.displayName,
+          registrationNumber: created.registrationNumber,
+        });
+      } catch (error: any) {
+        const message = error?.code === 'P2002'
+          ? 'This registration number already exists.'
+          : 'This row could not be saved. Check its values and try again.';
+        results.push({
+          row: index + 1,
+          success: false,
+          registrationNumber: vehicle.registrationNumber,
+          error: message,
+        });
+      }
+    }
+
+    const created = results.filter(result => result.success).length;
+    return {
+      total: vehicles.length,
+      created,
+      failed: vehicles.length - created,
+      results,
+    };
+  }
+
   async update(id: string, dto: Partial<CreateVehicleDto>) {
     await this.findOne(id);
     const { images, ...data } = dto as any;
