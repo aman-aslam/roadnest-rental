@@ -184,25 +184,19 @@ cd apps/api
 npx prisma migrate dev --name init
 ```
 
-### 5. Add the PostgreSQL overlap guard migration
+### 5. Apply the checked-in migrations
 
-Prisma's schema language does not currently express PostgreSQL exclusion constraints directly, so the additional SQL migration is supplied separately. Add it **after** the initial migration:
+The repository includes the PostgreSQL overlap-guard migration and the MPV vehicle-category migration. Apply all checked-in migrations in timestamp order:
 
-From the repository root, run the helper to create a timestamped migration after the initial migration and copy in the SQL automatically:
-
-```bash
-npm run prisma:guard-migration -w @roadnest/api
-```
-
-Then, from `apps/api`, apply it:
+From `apps/api`:
 
 ```bash
 npx prisma migrate dev
 ```
 
-This migration enables `btree_gist` and applies a half-open time-range exclusion constraint to `Booking` for `PENDING`, `CONFIRMED` and `ACTIVE` reservations. A booking can end exactly when the next booking starts. The guard is important: do not skip it in production.
+For production, use `npx prisma migrate deploy` (Render pre-deploy command). Do not run the migration-generation helper for the already checked-in overlap guard.
 
-For a production database, generate and review migrations in development, then apply the checked-in migrations with `npx prisma migrate deploy`; do not use `migrate dev` against production.
+The overlap guard uses PostgreSQL's `btree_gist` extension and a half-open `[pickup, return)` range, so adjacent rentals are allowed. Before adding the constraint, the migration checks for existing overlapping `PENDING`, `CONFIRMED` or `ACTIVE` bookings. If conflicts exist, it stops and reports that they must be reviewed; it does not delete or change booking rows.
 
 ### 6. Seed the admin user and demo fleet
 
