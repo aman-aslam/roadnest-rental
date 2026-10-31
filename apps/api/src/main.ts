@@ -17,7 +17,7 @@ async function bootstrap() {
   // trailing slashes so a dashboard value cannot accidentally mismatch Origin.
   const configuredOrigins = (process.env.WEB_ORIGIN ?? '')
     .split(',')
-    .map((value) => value.trim().replace(/\\/+$/, ''))
+    .map((value) => value.trim().replace(/\/+$/, ''))
     .filter(Boolean);
   const allowedOrigins = new Set([
     'http://localhost:3000',
