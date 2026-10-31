@@ -20,6 +20,7 @@ enum VehicleCategory {
   HATCHBACK
   SEDAN
   SUV
+  MPV
   LUXURY
   SPORTS_BIKE
   SCOOTER
