@@ -1,0 +1,32 @@
+import { IsArray, IsBoolean, IsIn, IsInt, IsOptional, IsString, Min } from 'class-validator';
+export class CreateVehicleDto {
+  @IsIn(['CAR','BIKE']) type!: 'CAR'|'BIKE';
+  @IsIn(['HATCHBACK','SEDAN','SUV','LUXURY','SPORTS_BIKE','SCOOTER','MOTORCYCLE','ELECTRIC_BIKE']) category!: string;
+  @IsString() brand!: string;
+  @IsString() model!: string;
+  @IsOptional() @IsString() variant?: string;
+  @IsString() displayName!: string;
+  @IsString() registrationNumber!: string;
+  @IsOptional() @IsInt() year?: number;
+  @IsOptional() @IsString() color?: string;
+  @IsIn(['PETROL','DIESEL','ELECTRIC','HYBRID','CNG']) fuelType!: string;
+  @IsOptional() @IsIn(['MANUAL','AUTOMATIC']) transmission?: string;
+  @IsOptional() @IsInt() seats?: number;
+  @IsOptional() @IsInt() engineCc?: number;
+  @IsOptional() @IsBoolean() isElectric?: boolean;
+  @IsOptional() @IsInt() rangeKm?: number;
+  @IsOptional() @IsString() description?: string;
+  @IsOptional() @IsArray() @IsString({ each: true }) features?: string[];
+  @IsOptional() @IsInt() @Min(0) hourlyRatePaise?: number;
+  @IsInt() @Min(0) dailyRatePaise!: number;
+  @IsOptional() @IsInt() @Min(0) weeklyRatePaise?: number;
+  @IsOptional() @IsInt() @Min(0) monthlyRatePaise?: number;
+  @IsOptional() @IsInt() @Min(0) securityDepositPaise?: number;
+  @IsOptional() @IsInt() @Min(0) includedKmPerDay?: number;
+  @IsOptional() @IsInt() @Min(0) extraKmRatePaise?: number;
+  @IsOptional() @IsInt() @Min(0) lateFeePerHourPaise?: number;
+  @IsString() pickupLocation!: string;
+  @IsOptional() @IsBoolean() isFeatured?: boolean;
+  @IsOptional() @IsBoolean() isPublished?: boolean;
+  @IsOptional() @IsArray() @IsString({ each: true }) images?: string[];
+}

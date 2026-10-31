@@ -1,0 +1,12 @@
+node_modules
+.next
+dist
+.env
+.env.local
+coverage
+apps/api/uploads/*
+!apps/api/uploads/.gitkeep
+apps/api/public/vehicle-images/*
+!apps/api/public/vehicle-images/.gitkeep
+apps/api/uploads/handover/*
+!apps/api/uploads/handover/.gitkeep
