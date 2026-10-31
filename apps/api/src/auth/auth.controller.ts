@@ -12,12 +12,14 @@ export class AuthController {
 
   private cookieBaseOptions() {
     const secure = this.config.get('COOKIE_SECURE') === 'true';
+    const sameSite: 'none' | 'lax' = secure ? 'none' : 'lax';
+
     return {
       httpOnly: true,
       secure,
       // The frontend and API are on different Render hostnames. In production,
       // allow the API cookie on cross-origin fetches and require HTTPS.
-      sameSite: (secure ? 'none' : 'lax') as const,
+      sameSite,
       path: '/',
     };
   }
