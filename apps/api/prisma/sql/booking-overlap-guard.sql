@@ -6,6 +6,6 @@ ALTER TABLE "Booking"
   ADD CONSTRAINT "booking_vehicle_no_overlapping_active_periods"
   EXCLUDE USING gist (
     "vehicleId" WITH =,
-    tstzrange("pickupAt", "returnAt", '[)') WITH &&
+    tsrange("pickupAt", "returnAt", '[)') WITH &&
   )
   WHERE ("status" IN ('PENDING', 'CONFIRMED', 'ACTIVE'));
