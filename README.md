@@ -238,7 +238,7 @@ All routes are prefixed with `/api`.
 
 | Area | Routes | Access |
 |---|---|---|
-| Authentication | `POST /auth/register`, `POST /auth/login`, `POST /auth/logout`, `GET /auth/me` | Public / signed-in |
+| Health | `GET /health` | Public readiness check (also verifies Neon connectivity) |\n| Authentication | `POST /auth/register`, `POST /auth/login`, `POST /auth/logout`, `GET /auth/me` | Public / signed-in |
 | Fleet | `GET /vehicles`, `GET /vehicles/:id`, `GET /vehicles/:id/quote`, `GET /vehicles/:id/availability` | Public |
 | Fleet admin | `POST /vehicles`, `POST /vehicles/bulk`, `PATCH /vehicles/:id`, `DELETE /vehicles/:id`, `POST /vehicles/:id/images` | Admin/staff; archive is admin-only |
 | Customer bookings | `POST /bookings`, `GET /bookings/mine`, `GET /bookings/mine/:id`, `POST /bookings/:id/cancel` | Customer |
@@ -304,7 +304,7 @@ The repository includes a GitHub Actions workflow that installs from the root lo
 - Root directory: `apps/api`
 - Build command: `npm install && npx prisma generate && npx nest build`
 - Start command: `node dist/src/main.js`
-- Pre-deploy command: `npx prisma migrate deploy` (applies checked-in migrations, including the MPV category migration)
+- Pre-deploy command: `npx prisma migrate deploy` (applies checked-in migrations, including MPV and booking-overlap protection)\n- Health check path: `/api/health`
 
 Required API environment variables:
 
