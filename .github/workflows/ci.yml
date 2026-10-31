@@ -39,4 +39,5 @@ jobs:
       - name: Build web
         run: npm run build --workspace=@roadnest/web
         env:
-          NEXT_PUBLIC_API_URL: https://roadnest-api.onrender.com/api
+          NEXT_PUBLIC_API_URL: /api
+          API_ORIGIN: https://roadnest-api.onrender.com
