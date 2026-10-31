@@ -19,8 +19,8 @@ BEGIN
        AND first_booking.id < second_booking.id
       WHERE first_booking.status::text IN ('PENDING', 'CONFIRMED', 'ACTIVE')
         AND second_booking.status::text IN ('PENDING', 'CONFIRMED', 'ACTIVE')
-        AND tstzrange(first_booking."pickupAt", first_booking."returnAt", '[)')
-            && tstzrange(second_booking."pickupAt", second_booking."returnAt", '[)')
+        AND tsrange(first_booking."pickupAt", first_booking."returnAt", '[)')
+            && tsrange(second_booking."pickupAt", second_booking."returnAt", '[)')
     ) THEN
       RAISE EXCEPTION
         'Cannot add booking overlap protection: existing PENDING, CONFIRMED, or ACTIVE bookings overlap for at least one vehicle. Review and resolve those bookings, then rerun this migration.';
@@ -30,7 +30,7 @@ BEGIN
       ADD CONSTRAINT "booking_vehicle_no_overlapping_active_periods"
       EXCLUDE USING gist (
         "vehicleId" WITH =,
-        tstzrange("pickupAt", "returnAt", '[)') WITH &&
+        tsrange("pickupAt", "returnAt", '[)') WITH &&
       )
       WHERE ("status" IN ('PENDING', 'CONFIRMED', 'ACTIVE'));
   END IF;
