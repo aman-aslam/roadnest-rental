@@ -3,8 +3,13 @@ import * as bcrypt from 'bcrypt';
 const prisma = new PrismaClient();
 
 async function main() {
+  const isProduction = process.env.NODE_ENV === 'production';
   const adminEmail = (process.env.ADMIN_EMAIL || 'admin@roadnest.local').toLowerCase();
-  const adminPassword = process.env.ADMIN_PASSWORD || 'ChangeMeNow!2026';
+  const adminPassword = process.env.ADMIN_PASSWORD || (isProduction ? '' : 'ChangeMeNow!2026');
+
+  if (isProduction && (!process.env.ADMIN_EMAIL || adminPassword.length < 16)) {
+    throw new Error('Production seeding requires ADMIN_EMAIL and an ADMIN_PASSWORD of at least 16 characters.');
+  }
   await prisma.user.upsert({
     where: { email: adminEmail },
     update: { name: process.env.ADMIN_NAME || 'Shop Administrator', role: 'ADMIN' },
@@ -16,9 +21,12 @@ async function main() {
     { type:'BIKE', category:'MOTORCYCLE', brand:'Royal Enfield', model:'Classic 350', displayName:'Royal Enfield Classic 350', registrationNumber:'DEMO-BIKE-001', year:2024, fuelType:'PETROL', transmission:'MANUAL', engineCc:350, hourlyRatePaise:10000, dailyRatePaise:80000, weeklyRatePaise:480000, monthlyRatePaise:1600000, securityDepositPaise:200000, includedKmPerDay:150, extraKmRatePaise:500, lateFeePerHourPaise:8000, pickupLocation:process.env.NEXT_PUBLIC_SHOP_CITY || 'Your shop location', features:['Helmet included','350cc'], isFeatured:true },
     { type:'BIKE', category:'SCOOTER', brand:'Honda', model:'Activa 6G', displayName:'Honda Activa 6G', registrationNumber:'DEMO-BIKE-002', year:2023, fuelType:'PETROL', transmission:'AUTOMATIC', engineCc:110, hourlyRatePaise:5000, dailyRatePaise:45000, weeklyRatePaise:260000, monthlyRatePaise:850000, securityDepositPaise:100000, includedKmPerDay:120, extraKmRatePaise:300, lateFeePerHourPaise:5000, pickupLocation:process.env.NEXT_PUBLIC_SHOP_CITY || 'Your shop location', features:['Automatic','Helmet included'] },
   ];
-  for (const v of vehicles) {
-    await prisma.vehicle.upsert({ where: { registrationNumber: v.registrationNumber }, update: {}, create: v });
+  const shouldSeedDemoVehicles = !isProduction || process.env.SEED_DEMO_VEHICLES === 'true';
+  if (shouldSeedDemoVehicles) {
+    for (const v of vehicles) {
+      await prisma.vehicle.upsert({ where: { registrationNumber: v.registrationNumber }, update: {}, create: v });
+    }
   }
-  console.log(`Seed complete. Admin: ${adminEmail}. Demo vehicles: ${vehicles.length}.`);
+  console.log(`Seed complete. Admin: ${adminEmail}. Demo vehicles inserted: ${shouldSeedDemoVehicles ? vehicles.length : 0}.`);
 }
 main().finally(() => prisma.$disconnect());
