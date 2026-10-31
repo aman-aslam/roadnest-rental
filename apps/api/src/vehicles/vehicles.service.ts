@@ -102,11 +102,29 @@ export class VehiclesService {
   }
 
   async update(id: string, dto: Partial<CreateVehicleDto>) {
-    await this.findOne(id);
+    const existing = await this.findOne(id);
     const { images, ...data } = dto as any;
+    const nextType = data.type ?? existing.type;
+    const nextCategory = data.category ?? existing.category;
+    const carCategories = ['HATCHBACK', 'SEDAN', 'SUV', 'MPV', 'LUXURY'];
+    const bikeCategories = ['SPORTS_BIKE', 'SCOOTER', 'MOTORCYCLE', 'ELECTRIC_BIKE'];
+    const validCategories = nextType === 'CAR' ? carCategories : bikeCategories;
+    if (!validCategories.includes(nextCategory)) {
+      throw new BadRequestException(`Category ${nextCategory} is not valid for ${nextType} vehicles.`);
+    }
+
     return this.prisma.$transaction(async tx => {
       if (images) await tx.vehicleImage.deleteMany({ where: { vehicleId: id } });
-      return tx.vehicle.update({ where: { id }, data: { ...data, ...((data as any).fuelType ? { isElectric: (data as any).fuelType === 'ELECTRIC' } : {}), ...(images ? { images: { create: images.map((url: string, index: number) => ({ url, sortOrder: index })) } } : {}) }, include: { images: true } });
+      return tx.vehicle.update({
+        where: { id },
+        data: {
+          ...data,
+          ...(data.registrationNumber ? { registrationNumber: String(data.registrationNumber).trim().toUpperCase() } : {}),
+          ...((data as any).fuelType ? { isElectric: (data as any).fuelType === 'ELECTRIC' } : {}),
+          ...(images ? { images: { create: images.map((url: string, index: number) => ({ url, sortOrder: index })) } } : {}),
+        },
+        include: { images: true },
+      });
     });
   }
   async archive(id: string) {
