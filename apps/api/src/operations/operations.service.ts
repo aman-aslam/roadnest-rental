@@ -1,16 +1,65 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { randomBytes } from 'crypto';
+import { readFile } from 'fs/promises';
+import { basename, extname, join } from 'path';
 import { PrismaService } from '../prisma/prisma.service';
 import { BookingsService } from '../bookings/bookings.service';
+import { R2StorageService } from '../storage/r2-storage.service';
 
 @Injectable()
 export class OperationsService {
-  constructor(private prisma: PrismaService, private bookings: BookingsService) {}
+  constructor(
+    private prisma: PrismaService,
+    private bookings: BookingsService,
+    private storage: R2StorageService,
+  ) {}
+
+  private extensionForMime(mimeType: string): string {
+    const extensions: Record<string, string> = {
+      'image/jpeg': '.jpg',
+      'image/png': '.png',
+      'image/webp': '.webp',
+      'application/pdf': '.pdf',
+    };
+    return extensions[mimeType] || '';
+  }
 
   async storeHandoverPhotos(bookingId: string, files: Express.Multer.File[]) {
     const booking = await this.prisma.booking.findUnique({ where: { id: bookingId }, select: { id: true, status: true } });
     if (!booking) throw new NotFoundException('Booking not found');
-    if (!['CONFIRMED','ACTIVE'].includes(booking.status)) throw new BadRequestException('Photos can only be added during pickup or return.');
-    return { storageKeys: (files || []).map(file => file.filename) };
+    if (!['CONFIRMED', 'ACTIVE'].includes(booking.status)) {
+      throw new BadRequestException('Photos can only be added during pickup or return.');
+    }
+
+    const storageKeys: string[] = [];
+    for (const file of files || []) {
+      const key = `handover-${bookingId}-${randomBytes(16).toString('hex')}${this.extensionForMime(file.mimetype)}`;
+      await this.storage.upload(key, file.buffer, file.mimetype);
+      storageKeys.push(key);
+    }
+    return { storageKeys };
+  }
+
+  async getHandoverPhotoFile(key: string): Promise<{ buffer: Buffer; contentType: string }> {
+    const photo = await this.prisma.handoverPhoto.findFirst({ where: { storageKey: key }, select: { storageKey: true } });
+    if (!photo) throw new NotFoundException('Handover photo not found');
+
+    if (key.startsWith('handover-')) {
+      const buffer = await this.storage.download(key);
+      const extension = extname(key).toLowerCase();
+      const contentType = extension === '.png' ? 'image/png' : extension === '.webp' ? 'image/webp' : 'image/jpeg';
+      return { buffer, contentType };
+    }
+
+    // Backward compatibility for files created before persistent storage was enabled.
+    try {
+      const buffer = await readFile(join(process.cwd(), 'uploads', 'handover', basename(key)));
+      const extension = extname(key).toLowerCase();
+      const contentType = extension === '.png' ? 'image/png' : extension === '.webp' ? 'image/webp' : 'image/jpeg';
+      return { buffer, contentType };
+    } catch {
+      throw new NotFoundException('This older handover photo is no longer on the server. Please upload it again.');
+    }
   }
 
   async pickup(bookingId: string, actorId: string, body: any) {
@@ -89,12 +138,43 @@ export class OperationsService {
     return this.prisma.user.findMany({ where: { role: 'CUSTOMER' }, select: { id: true, name: true, email: true, phone: true, createdAt: true, documents: { select: { id: true, type: true, status: true, originalName: true, createdAt: true } }, bookings: { select: { id: true, bookingCode: true, status: true, totalAmountPaise: true, amountPaidPaise: true, createdAt: true }, orderBy: { createdAt: 'desc' }, take: 5 } }, orderBy: { createdAt: 'desc' }, take: 250 });
   }
   myDocuments(userId: string) { return this.prisma.customerDocument.findMany({ where: { userId }, orderBy: { createdAt: 'desc' } }); }
-  async getDocument(id: string) { const doc = await this.prisma.customerDocument.findUnique({ where: { id } }); if (!doc) throw new NotFoundException('Document not found'); return doc; }
+  async getDocumentFile(id: string): Promise<{ doc: any; buffer: Buffer }> {
+    const doc = await this.prisma.customerDocument.findUnique({ where: { id } });
+    if (!doc) throw new NotFoundException('Document not found');
+
+    if (doc.storageKey.startsWith('documents/')) {
+      return { doc, buffer: await this.storage.download(doc.storageKey) };
+    }
+
+    // Backward compatibility for documents uploaded before R2 was configured.
+    try {
+      const buffer = await readFile(join(process.cwd(), 'uploads', basename(doc.storageKey)));
+      return { doc, buffer };
+    } catch {
+      throw new NotFoundException('This older document is no longer on the server. Ask the customer to upload it again.');
+    }
+  }
 
   async saveDocument(userId: string, file: Express.Multer.File, type: string) {
     if (!file) throw new BadRequestException('Choose a file to upload.');
-    if (!['DRIVING_LICENSE','ID_PROOF'].includes(type)) throw new BadRequestException('Document type is invalid.');
-    return this.prisma.customerDocument.create({ data: { userId, type: type as any, originalName: file.originalname, storageKey: file.filename, mimeType: file.mimetype, sizeBytes: file.size } });
+    if (!['DRIVING_LICENSE', 'ID_PROOF'].includes(type)) throw new BadRequestException('Document type is invalid.');
+    if (!['image/jpeg', 'image/png', 'image/webp', 'application/pdf'].includes(file.mimetype)) {
+      throw new BadRequestException('Only JPG, PNG, WebP or PDF documents are accepted.');
+    }
+
+    const key = `documents/${userId}/${randomBytes(20).toString('hex')}${this.extensionForMime(file.mimetype)}`;
+    await this.storage.upload(key, file.buffer, file.mimetype);
+
+    return this.prisma.customerDocument.create({
+      data: {
+        userId,
+        type: type as any,
+        originalName: basename(file.originalname),
+        storageKey: key,
+        mimeType: file.mimetype,
+        sizeBytes: file.size,
+      },
+    });
   }
   async verifyDocument(id: string, status: 'VERIFIED'|'REJECTED', adminNote?: string) {
     const doc = await this.prisma.customerDocument.findUnique({ where: { id } });
