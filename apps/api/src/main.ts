@@ -13,24 +13,26 @@ async function bootstrap() {
   app.use(cookieParser());
   app.use('/vehicle-images', express.static(join(process.cwd(), 'public', 'vehicle-images'), { maxAge: '7d', immutable: true }));
 
-  // WEB_ORIGIN supports a comma-separated allowlist. Normalize whitespace and
-  // trailing slashes so a dashboard value cannot accidentally mismatch Origin.
+  // Allow the deployed RoadNest frontend explicitly. WEB_ORIGIN can additionally
+  // contain comma-separated custom frontend origins.
   const configuredOrigins = (process.env.WEB_ORIGIN ?? '')
     .split(',')
-    .map((value) => value.trim().replace(/\/+$/, ''))
+    .map((value) => value.trim().replace(/^["']|["']$/g, '').replace(/\/+$/, ''))
     .filter(Boolean);
   const allowedOrigins = new Set([
+    'https://roadnest-web.onrender.com',
     'http://localhost:3000',
     ...configuredOrigins,
   ]);
+  console.log('[CORS] Allowed origins:', [...allowedOrigins]);
 
   app.enableCors({
     origin: (origin, callback) => {
-      // Requests without an Origin header (for example, server-to-server calls)
-      // are not browser CORS requests and should continue normally.
+      // Requests without an Origin header are not browser CORS requests.
       if (!origin || allowedOrigins.has(origin)) {
         return callback(null, true);
       }
+      console.warn('[CORS] Rejected origin:', origin);
       return callback(null, false);
     },
     credentials: true,
