@@ -22,7 +22,15 @@ export class AuthService {
   }
   async login(dto: LoginDto) {
     const identifier = dto.identifier.trim();
-    const user = await this.prisma.user.findFirst({ where: { OR: [{ email: identifier.toLowerCase() }, { phone: identifier }] } });
+    const normalizedPhone = identifier.replace(/[\\s()-]/g, '');
+    const user = await this.prisma.user.findFirst({
+      where: {
+        OR: [
+          { email: identifier.toLowerCase() },
+          { phone: normalizedPhone },
+        ],
+      },
+    });
     if (!user || !user.isActive || !(await bcrypt.compare(dto.password, user.passwordHash))) throw new UnauthorizedException('Invalid email or password');
     return this.issue(user);
   }
