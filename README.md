@@ -240,7 +240,7 @@ All routes are prefixed with `/api`.
 |---|---|---|
 | Authentication | `POST /auth/register`, `POST /auth/login`, `POST /auth/logout`, `GET /auth/me` | Public / signed-in |
 | Fleet | `GET /vehicles`, `GET /vehicles/:id`, `GET /vehicles/:id/quote`, `GET /vehicles/:id/availability` | Public |
-| Fleet admin | `POST /vehicles`, `PATCH /vehicles/:id`, `DELETE /vehicles/:id`, `POST /vehicles/:id/images` | Admin/staff; archive is admin-only |
+| Fleet admin | `POST /vehicles`, `POST /vehicles/bulk`, `PATCH /vehicles/:id`, `DELETE /vehicles/:id`, `POST /vehicles/:id/images` | Admin/staff; archive is admin-only |
 | Customer bookings | `POST /bookings`, `GET /bookings/mine`, `GET /bookings/mine/:id`, `POST /bookings/:id/cancel` | Customer |
 | Booking admin | `GET /bookings/admin/list`, `GET /bookings/admin/:id`, `POST /bookings/admin/walk-in`, `PATCH /bookings/admin/:id/status`, `PATCH /bookings/admin/:id/extend` | Admin/staff |
 | Payments | `POST /payments/razorpay/order`, `POST /payments/razorpay/verify`, `POST /payments/razorpay/webhook`, `POST /payments/manual` | Customer / webhook / admin-staff |
@@ -331,6 +331,6 @@ The Next.js rewrites proxy `/api/*` and legacy `/vehicle-images/*` through the w
 
 ### Private R2 bucket
 
-Create a private R2 bucket and an S3-compatible access key limited to that bucket with object read/write permissions. Do not enable public bucket access for identity documents. The API stores generated object keys in Neon; file downloads require an authenticated admin/staff session. New uploads fail with a clear service error until all four R2 environment variables are configured.
+Create a private R2 bucket and an S3-compatible access key limited to that bucket with object read/write permissions. Do not enable public bucket access for identity documents. The API stores generated object keys in Neon; file downloads require an authenticated admin/staff session. New document and handover uploads fail with a clear service error until all four R2 environment variables are configured. The API also applies a PostgreSQL exclusion constraint to prevent overlapping active bookings per vehicle; the migration checks for existing conflicts and stops safely if it finds any.
 
 Existing vehicle, booking and user rows are not deleted by these changes. Existing files that were stored on Render's ephemeral filesystem may need to be uploaded again if the old files have already disappeared.
