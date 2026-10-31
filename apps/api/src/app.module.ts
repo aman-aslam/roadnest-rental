@@ -9,8 +9,9 @@ import { OperationsModule } from './operations/operations.module';
 import { PaymentsModule } from './payments/payments.module';
 import { ReportsModule } from './reports/reports.module';
 import { NotificationsModule } from './notifications/notifications.module';
+import { AiModule } from './ai/ai.module';
 
 @Module({
-  imports: [ConfigModule.forRoot({ isGlobal: true }), ScheduleModule.forRoot(), PrismaModule, AuthModule, VehiclesModule, BookingsModule, OperationsModule, PaymentsModule, ReportsModule, NotificationsModule],
+  imports: [ConfigModule.forRoot({ isGlobal: true }), ScheduleModule.forRoot(), PrismaModule, AuthModule, VehiclesModule, BookingsModule, OperationsModule, PaymentsModule, ReportsModule, NotificationsModule, AiModule],
 })
 export class AppModule {}
