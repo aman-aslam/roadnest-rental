@@ -19,8 +19,8 @@ export class AuthController {
     return {
       httpOnly: true,
       secure,
-      // The frontend and API are on different Render hostnames. In production,
-      // allow the API cookie on cross-origin fetches and require HTTPS.
+      // In production the cookie is Secure; the Next.js same-origin proxy
+      // keeps browser requests on the frontend host.
       sameSite,
       path: '/',
     };
