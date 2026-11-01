@@ -182,3 +182,17 @@
 @keyframes roadnest-shimmer{100%{transform:translateX(100%)}}
 @media(max-width:720px){.skeleton-photo{height:135px}}
 @media(max-width:390px){.skeleton-photo{height:170px}}
+
+
+/* Web-hosted reference photos are explicitly labelled when no real fleet photo exists. */
+.vehicle-photo-visual{position:absolute;inset:0;display:block;overflow:hidden;background:linear-gradient(135deg,#e2eee5,#f4f2e8)}
+.vehicle-photo-visual>img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+.vehicle-card-photo,.planner-vehicle-photo,.detail-vehicle-photo{position:absolute;inset:0}
+.vehicle-photo-visual-placeholder{position:absolute;inset:0;display:grid;place-items:center;background:linear-gradient(135deg,#e2eee5,#f4f2e8);font-size:76px}
+.vehicle-photo-disclaimer{position:absolute;left:8px;bottom:8px;z-index:3;max-width:calc(100% - 16px);padding:5px 7px;border-radius:6px;background:rgba(17,34,31,.82);color:#fff;font-size:8px;line-height:1.35;font-weight:700;letter-spacing:.01em}
+.planner-vehicle-media{position:relative;overflow:hidden}
+.planner-vehicle-photo{position:absolute;inset:0}
+.detail-vehicle-photo{position:absolute;inset:0}
+.ai-suggestion-photo{position:relative;width:63px;height:50px;flex:0 0 63px;border-radius:7px;overflow:hidden}
+.ai-suggestion-photo .vehicle-photo-disclaimer{left:2px;bottom:2px;max-width:calc(100% - 4px);padding:2px 3px;font-size:6px;line-height:1.1;border-radius:3px}
+@media(max-width:720px){.vehicle-photo-disclaimer{font-size:7px;padding:4px 6px}.vehicle-photo-visual-placeholder{font-size:62px}}
