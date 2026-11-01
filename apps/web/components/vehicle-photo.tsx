@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { Bike, CarFront } from 'lucide-react';
 import { assetUrl, fallbackVehicleImage } from '@/lib/api';
 
 type VehiclePhotoProps = {
@@ -16,6 +17,7 @@ export function VehiclePhoto({ src, type, category, alt, className = '', compact
   const [showSample, setShowSample] = useState(!src);
   const [sampleFailed, setSampleFailed] = useState(false);
   const sampleUrl = fallbackVehicleImage(type, category);
+  const VehicleIcon = type?.toUpperCase() === 'BIKE' ? Bike : CarFront;
 
   function handleImageError() {
     if (!showSample) {
@@ -29,7 +31,8 @@ export function VehiclePhoto({ src, type, category, alt, className = '', compact
     <div className={`vehicle-photo-visual ${className}`}>
       {sampleFailed ? (
         <div className="vehicle-photo-visual-placeholder" role="img" aria-label={`No photo available for ${alt}`}>
-          <span>{type?.toUpperCase() === 'BIKE' ? '🏍️' : '🚘'}</span>
+          <span className="vehicle-photo-placeholder-icon"><VehicleIcon size={compact ? 34 : 54} strokeWidth={1.25}/></span>
+          <small>Image unavailable</small>
         </div>
       ) : (
         <img
