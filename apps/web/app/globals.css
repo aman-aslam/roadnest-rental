@@ -169,3 +169,16 @@
 @media(max-width:950px){.ai-home-inner{gap:30px}.ai-planner-shell{grid-template-columns:190px minmax(0,1fr)}.planner-vehicle-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:720px){.hero-photo-card{height:315px}.hero-photo-bottom{font-size:22px}.photo-category{min-height:240px}.photo-category .category-copy{max-width:90%}.ai-home-promo{padding:60px 0}.ai-home-inner{grid-template-columns:1fr;gap:25px}.ai-home-inner h2{font-size:32px}.ai-launcher{right:12px;bottom:12px;padding:12px 14px}.ai-chat-backdrop{padding:0;align-items:flex-end}.ai-chat-panel{height:min(82vh,690px);border-radius:18px 18px 0 0;width:100%}.ai-planner-page{padding:10px}.ai-planner-shell{grid-template-columns:1fr;min-height:calc(100vh - 86px);border-radius:14px}.ai-planner-sidebar{padding:12px 14px;border-right:0;border-bottom:1px solid #edf0ee}.ai-planner-sidebar .brand{margin:0 0 12px}.planner-nav{display:grid;grid-template-columns:repeat(3,1fr);gap:4px}.planner-nav a,.planner-nav>span{justify-content:center;padding:9px 5px;font-size:8px}.planner-tip,.planner-sidebar-link{display:none}.planner-topbar{height:48px;padding:0 15px}.planner-topbar>span{font-size:7px}.planner-content{width:calc(100% - 26px);padding:30px 0 25px}.planner-welcome h1{font-size:29px}.planner-prompt>div{align-items:flex-start;gap:10px;flex-direction:column}.planner-shortcuts{margin-bottom:23px}.planner-vehicle-grid{grid-template-columns:1fr 1fr;gap:8px}.planner-vehicle-card>img,.planner-vehicle-placeholder{height:100px}.planner-results-heading h2{font-size:16px}.ai-detect-panel{grid-column:auto}.ai-photo-input{align-items:flex-start;flex-direction:column}.ai-photo-input input{max-width:100%;width:100%}}
 @media(max-width:390px){.planner-vehicle-grid{grid-template-columns:1fr}.planner-nav a,.planner-nav>span{font-size:7px}}
+
+
+/* Loading placeholders shown while the free API/database wake up. */
+.skeleton-block{position:relative;overflow:hidden;background:#e9eee9;border-radius:7px}
+.skeleton-block::after{content:"";position:absolute;inset:0;transform:translateX(-100%);background:linear-gradient(90deg,transparent,rgba(255,255,255,.72),transparent);animation:roadnest-shimmer 1.35s infinite}
+.skeleton-photo{height:190px;border-radius:0}
+.skeleton-line{height:10px;margin:12px 0}
+.skeleton-line.short{width:34%}
+.skeleton-line.title{height:17px;width:68%}
+.skeleton-line.price{height:20px;width:42%;margin-top:22px}
+@keyframes roadnest-shimmer{100%{transform:translateX(100%)}}
+@media(max-width:720px){.skeleton-photo{height:135px}}
+@media(max-width:390px){.skeleton-photo{height:170px}}
