@@ -208,3 +208,10 @@
   .search-tabs button{padding:9px 8px 11px;gap:7px}
   .vehicle-tab-photo{width:39px;height:30px}
 }
+
+
+/* Loading feedback for the vehicle count */
+.vehicle-count-loading{display:inline-flex;align-items:center;gap:9px;color:var(--green)}
+.vehicle-count-loading i{width:13px;height:13px;border:2px solid #dce9df;border-top-color:var(--green);border-radius:50%;animation:vehicle-count-spin .75s linear infinite;flex:none}
+@keyframes vehicle-count-spin{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){.vehicle-count-loading i{animation:none;border-top-color:#dce9df;border-right-color:var(--green)}}
