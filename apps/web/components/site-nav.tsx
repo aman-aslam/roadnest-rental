@@ -1,8 +1,9 @@
 'use client';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { CarFront, Bike, Menu, UserRound, Gauge, Sparkles, X } from 'lucide-react';
+import { Bike, Menu, UserRound, Gauge, Sparkles, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { RoadNestMark } from '@/components/roadnest-mark';
 
 export function SiteNav() {
   const pathname = usePathname();
@@ -15,7 +16,7 @@ export function SiteNav() {
     <header className="site-header">
       <div className="nav-wrap">
         <Link href="/" className="brand" aria-label="RoadNest Rentals home">
-          <span className="brand-mark"><CarFront size={21}/></span>
+          <span className="brand-mark"><RoadNestMark /></span>
           <span>{name}<small>MOVE YOUR WAY</small></span>
         </Link>
         <button
@@ -29,7 +30,7 @@ export function SiteNav() {
           {open ? <X size={19}/> : <Menu size={19}/>}
         </button>
         <nav id="primary-navigation" className={open ? 'nav-links open' : 'nav-links'} aria-label="Main navigation">
-          <Link className={pathname === '/vehicles' ? 'active' : ''} href="/vehicles?type=CAR"><CarFront size={16}/> Cars</Link>
+          <Link className={pathname === '/vehicles' ? 'active' : ''} href="/vehicles?type=CAR">Cars</Link>
           <Link href="/vehicles?type=BIKE"><Bike size={16}/> Bikes</Link>
           <Link className={pathname === '/ai-planner' ? 'active' : ''} href="/ai-planner"><Sparkles size={15}/> AI planner</Link>
           <Link href="/#how-it-works">How it works</Link>
