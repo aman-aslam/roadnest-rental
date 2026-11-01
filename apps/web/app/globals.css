@@ -198,24 +198,13 @@
 @media(max-width:720px){.vehicle-photo-disclaimer{font-size:7px;padding:4px 6px}.vehicle-photo-visual-placeholder{font-size:62px}}
 
 
-/* Real vehicle imagery in rental type selectors and listing header */
+/* Vehicle search photo thumbnails */
 .search-tabs button{gap:10px;padding:10px 16px 12px}
 .vehicle-tab-photo{display:block;width:46px;height:34px;overflow:hidden;border-radius:8px;background:#e7eee8;flex:none;box-shadow:0 2px 7px rgba(28,59,43,.1)}
 .vehicle-tab-photo img{display:block;width:100%;height:100%;object-fit:cover}
 .search-tabs button.selected .vehicle-tab-photo{outline:2px solid rgba(29,107,87,.25);outline-offset:2px}
-.page-hero-art{width:260px;height:145px;background:transparent;gap:0;overflow:visible;justify-content:center}
-.page-hero-art-photo{position:relative;width:155px;height:116px;border:4px solid #fff;border-radius:16px;overflow:hidden;box-shadow:0 14px 32px rgba(28,59,43,.18);background:#e7eee8}
-.page-hero-art-photo.car{z-index:1;transform:rotate(-5deg) translateX(12px)}
-.page-hero-art-photo.bike{z-index:2;transform:rotate(6deg) translate(-14px,12px)}
-.page-hero-art-photo img{display:block;width:100%;height:100%;object-fit:cover}
-.page-hero-art-photo span{position:absolute;left:8px;bottom:8px;padding:4px 7px;border-radius:5px;background:rgba(20,43,34,.72);color:#fff;font-size:8px;font-weight:800;letter-spacing:.14em}
 .empty-state-icon{display:block;margin:0 auto 8px;color:var(--green);stroke-width:1.6}
 @media(max-width:720px){
   .search-tabs button{padding:9px 8px 11px;gap:7px}
   .vehicle-tab-photo{width:39px;height:30px}
-  .page-hero-art{width:145px;height:94px;flex-shrink:0}
-  .page-hero-art-photo{width:90px;height:72px;border-width:3px;border-radius:11px}
-  .page-hero-art-photo.car{transform:rotate(-5deg) translateX(8px)}
-  .page-hero-art-photo.bike{transform:rotate(6deg) translate(-9px,8px)}
-  .page-hero-art-photo span{font-size:6px;left:5px;bottom:5px;padding:3px 5px}
 }
