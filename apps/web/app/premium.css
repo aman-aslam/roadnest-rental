@@ -407,3 +407,51 @@ em{color:#597b4b}
 .vehicle-photo-visual-placeholder{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:9px;color:#61794e}
 .vehicle-photo-placeholder-icon{display:grid;place-items:center;width:80px;height:80px;border-radius:22px;background:rgba(255,255,255,.52);color:#5b7545}
 .vehicle-photo-visual-placeholder small{font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:#899582}
+
+
+/* RoadNest brand refinement: a route-inspired mark and a cooler footer palette. */
+.roadnest-mark-svg{display:block;width:23px;height:23px;overflow:visible}
+.site-header .brand-mark{
+  display:grid;place-items:center;
+  background:linear-gradient(145deg,#294737,#1b3025);
+  color:#d9ed74;
+  border:1px solid rgba(217,237,116,.18);
+  box-shadow:0 5px 13px rgba(27,48,37,.12),inset 0 1px 0 rgba(255,255,255,.08);
+}
+.footer-brand .brand-mark{
+  display:grid;place-items:center;
+  background:#d9ed74;
+  color:#203348;
+  border:1px solid rgba(255,255,255,.24);
+  box-shadow:0 7px 18px rgba(0,0,0,.16);
+}
+.footer-brand .roadnest-mark-svg{width:24px;height:24px}
+.site-footer{
+  position:relative;
+  isolation:isolate;
+  overflow:hidden;
+  background:linear-gradient(118deg,#29394d 0%,#213247 52%,#1a2a3d 100%);
+  color:#edf2f6;
+  border-top:1px solid rgba(123,157,185,.22);
+}
+.site-footer:before{
+  content:"";
+  position:absolute;
+  z-index:-1;
+  width:560px;height:390px;
+  right:-170px;top:-250px;
+  border-radius:50%;
+  background:radial-gradient(circle,rgba(126,160,181,.16),rgba(126,160,181,0) 70%);
+  pointer-events:none;
+}
+.footer-inner,.copyright{position:relative;z-index:1}
+.footer-brand small{color:#aab9c7}
+.footer-inner p{color:#b2c0cd}
+.footer-inner>div:not(:first-child){color:#bdc9d5}
+.footer-inner>div>strong{color:#f3f6f8}
+.footer-inner a{color:#bdc9d5}
+.footer-inner a:hover{color:#d9ed74}
+.copyright{color:#98aabd;border-color:rgba(224,235,244,.14)}
+@media(max-width:620px){
+  .footer-inner{gap:25px 20px}
+}
