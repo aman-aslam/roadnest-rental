@@ -1,12 +1,12 @@
 import Link from 'next/link';
 import { ArrowUpRight, Fuel, Gauge, Users, Zap } from 'lucide-react';
-import { money, assetUrl } from '@/lib/api';
+import { money } from '@/lib/api';
+import { VehiclePhoto } from '@/components/vehicle-photo';
 
 export function VehicleCard({ vehicle }: { vehicle: any }) {
-  const cover = assetUrl(vehicle.images?.[0]?.url);
   return <article className="vehicle-card">
-    <Link href={`/vehicles/${vehicle.id}`} className="vehicle-photo" style={cover?{backgroundImage:`url(${cover})`}:undefined}>
-      {!cover && <div className={`vehicle-illustration ${vehicle.type==='BIKE'?'bike-art':''}`}><span>{vehicle.type==='BIKE'?'🏍️':'🚘'}</span></div>}
+    <Link href={`/vehicles/${vehicle.id}`} className="vehicle-photo">
+      <VehiclePhoto src={vehicle.images?.[0]?.url} type={vehicle.type} category={vehicle.category} alt={vehicle.displayName} className="vehicle-card-photo" />
       {vehicle.isFeatured && <span className="photo-tag">Popular choice</span>}
       <span className="photo-arrow"><ArrowUpRight size={17}/></span>
     </Link>
