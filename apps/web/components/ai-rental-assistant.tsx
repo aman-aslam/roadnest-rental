@@ -2,7 +2,8 @@
 import { FormEvent, useState } from 'react';
 import Link from 'next/link';
 import { ArrowRight, Bot, LoaderCircle, Send, Sparkles, X } from 'lucide-react';
-import { api, assetUrl, money } from '@/lib/api';
+import { api, money } from '@/lib/api';
+import { VehiclePhoto } from '@/components/vehicle-photo';
 
 type SuggestedVehicle = { id:string; displayName:string; type:string; category:string; fuelType:string; transmission?:string; seats?:number; dailyRatePaise:number; securityDepositPaise:number; image:string|null };
 type ChatMessage = { role:'assistant'|'user'; text:string; vehicles?:SuggestedVehicle[] };
@@ -23,7 +24,7 @@ export function AiRentalAssistant() {
     {open&&<div className="ai-chat-backdrop" onClick={()=>setOpen(false)}>
       <section className="ai-chat-panel" onClick={e=>e.stopPropagation()} aria-label="RoadNest rental assistant">
         <header className="ai-chat-header"><div className="ai-avatar"><Bot size={19}/></div><div><strong>RoadNest Assistant</strong><small>Rental planning · Powered by AI</small></div><button onClick={()=>setOpen(false)} aria-label="Close assistant"><X size={18}/></button></header>
-        <div className="ai-chat-messages">{messages.map((m,i)=><div key={i} className={`ai-message ${m.role}`}><p>{m.text}</p>{m.vehicles?.length? <div className="ai-suggestions">{m.vehicles.map(v=><Link href={`/vehicles/${v.id}`} key={v.id} onClick={()=>setOpen(false)} className="ai-suggestion">{v.image?<img src={assetUrl(v.image)} alt={v.displayName}/>:<div className="ai-suggestion-placeholder"/>}<span><strong>{v.displayName}</strong><small>{v.category.replaceAll('_',' ')} · {v.fuelType}</small><b>{money(v.dailyRatePaise)} / day</b></span><ArrowRight size={15}/></Link>)}</div>:null}</div>)}
+        <div className="ai-chat-messages">{messages.map((m,i)=><div key={i} className={`ai-message ${m.role}`}><p>{m.text}</p>{m.vehicles?.length? <div className="ai-suggestions">{m.vehicles.map(v=><Link href={`/vehicles/${v.id}`} key={v.id} onClick={()=>setOpen(false)} className="ai-suggestion"><VehiclePhoto src={v.image} type={v.type} category={v.category} alt={v.displayName} className="ai-suggestion-photo"/><span><strong>{v.displayName}</strong><small>{v.category.replaceAll('_',' ')} · {v.fuelType}</small><b>{money(v.dailyRatePaise)} / day</b></span><ArrowRight size={15}/></Link>)}</div>:null}</div>)}
         {busy&&<div className="ai-typing"><LoaderCircle size={15}/> Finding a suitable ride…</div>}
         </div>
         <div className="ai-quick-prompts"><button onClick={()=>void send('Show me cars for a weekend trip')}>Weekend car</button><button onClick={()=>void send('Suggest bikes under ₹1,000 per day')}>Bikes under ₹1,000</button><button onClick={()=>void send('Compare family-friendly SUVs')}>Family SUV</button></div>
