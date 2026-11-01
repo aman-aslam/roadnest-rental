@@ -313,6 +313,23 @@ Required API environment variables:
 
 Optional AI variables are `OPENAI_API_KEY`, `OPENAI_BASE_URL`, and `OPENAI_MODEL`. Keep every secret on the API service; never add them to `NEXT_PUBLIC_*` variables or commit them to Git.
 
+
+### Netlify Free frontend deployment
+
+The repository includes a root `netlify.toml` configured for the Next.js app in the `apps/web` workspace. Netlify's Next.js runtime is detected automatically.
+
+When connecting the Git repository to Netlify:
+
+- Repository: `aman-aslam/roadnest-rental`
+- Production branch: `main`
+- Base directory: leave blank (repository root, so npm workspaces and the root lockfile are available)
+- Package directory: `apps/web`
+- Build command: use the committed `netlify.toml` command: `npm ci && npm run build --workspace=@roadnest/web`
+- Publish directory: `apps/web/.next`
+- Build environment values are already in `netlify.toml`: `NEXT_PUBLIC_API_URL=/api` and `API_ORIGIN=https://roadnest-api.onrender.com`
+
+The Next.js runtime handles the App Router and Next.js rewrites, so browser API requests stay on the Netlify site origin while the server proxies them to the Render API. Keep the API credentials and database URL on Render only. The Netlify Free plan includes a monthly credit limit; the site can be paused when the account reaches that limit.
+
 ### Render web service
 
 - Root directory: `apps/web`
