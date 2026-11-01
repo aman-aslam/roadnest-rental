@@ -1,0 +1,12 @@
+# RoadNest web app deployment on Netlify.
+# Keep the repository root as the build base so npm workspaces and the root
+# package-lock.json remain available. Set the Netlify Package directory to
+# apps/web when linking this monorepo.
+[build]
+  command = "npm ci && npm run build --workspace=@roadnest/web"
+  publish = "apps/web/.next"
+
+[build.environment]
+  NODE_VERSION = "22"
+  NEXT_PUBLIC_API_URL = "/api"
+  API_ORIGIN = "https://roadnest-api.onrender.com"
