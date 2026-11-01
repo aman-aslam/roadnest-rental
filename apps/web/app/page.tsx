@@ -12,7 +12,23 @@ const bikePhoto = 'https://images.unsplash.com/photo-1558981806-ec527fa84c39?aut
 
 export default function HomePage() {
   const [vehicles,setVehicles] = useState<any[]>([]);
-  useEffect(()=>{ api<any[]>('/vehicles').then(setVehicles).catch(()=>setVehicles([])); },[]);
+  const [fleetLoading,setFleetLoading] = useState(true);
+  const [fleetError,setFleetError] = useState('');
+  const [retryCount,setRetryCount] = useState(0);
+
+  useEffect(()=>{
+    let active = true;
+    setFleetLoading(true);
+    setFleetError('');
+    api<any[]>('/vehicles')
+      .then(data=>{ if(active) setVehicles(data); })
+      .catch(error=>{ if(active) setFleetError(error.message || 'The fleet is temporarily unavailable.'); })
+      .finally(()=>{ if(active) setFleetLoading(false); });
+    return ()=>{ active = false; };
+  },[retryCount]);
+
+  const featuredVehicles = vehicles.filter(v=>v.isFeatured);
+  const homeVehicles = (featuredVehicles.length ? featuredVehicles : vehicles).slice(0,3);
   return <main>
     <section className="hero-section"><div className="hero-orb orb-one"/><div className="hero-orb orb-two"/><div className="container hero-grid">
       <div className="hero-copy"><div className="hero-kicker"><span className="kicker-dot"/> YOUR NEXT JOURNEY STARTS HERE</div><h1>Find your ride.<br/>Take the <em>scenic route.</em></h1><p>Thoughtfully maintained cars, bikes and scooters from one trusted local rental shop. Tell us where you’re headed and we’ll help you find the right ride.</p><div className="hero-points"><span><CheckCircle2 size={16}/> Clear, upfront rates</span><span><CheckCircle2 size={16}/> Flexible rental plans</span></div><div className="hero-cta"><Link className="button button-primary" href="/vehicles">Explore the fleet <ArrowRight size={17}/></Link><Link className="hero-ai-link" href="/ai-planner"><Sparkles size={16}/> Plan with AI</Link></div></div>
@@ -25,7 +41,7 @@ export default function HomePage() {
     </div></section>
 
     <section className="section fleet-section"><div className="container"><div className="section-heading"><div><span className="section-kicker">THE ROADNEST FLEET</span><h2>Popular rides, <em>ready to go.</em></h2></div><Link className="arrow-link" href="/vehicles">View all vehicles <ArrowRight size={17}/></Link></div>
-      {vehicles.length ? <div className="vehicle-grid">{vehicles.filter(v=>v.isFeatured).slice(0,3).map(v=><VehicleCard key={v.id} vehicle={v}/>)}</div> : <div className="empty-fleet"><Sparkles size={23}/><strong>Your fleet will show up here</strong><span>Add your cars and bikes in the shop admin to publish them online.</span><Link href="/admin" className="button button-outline">Open shop admin</Link></div>}
+      {fleetLoading ? <div className="vehicle-grid" aria-label="Loading vehicle fleet" aria-busy="true">{[1,2,3].map(item=><div className="vehicle-card vehicle-card-skeleton" key={item}><div className="skeleton-block skeleton-photo"/><div className="vehicle-card-body"><div className="skeleton-block skeleton-line short"/><div className="skeleton-block skeleton-line title"/><div className="skeleton-block skeleton-line"/><div className="skeleton-block skeleton-line price"/></div></div>)}</div> : fleetError ? <div className="empty-fleet"><Sparkles size={23}/><strong>Connecting to the RoadNest fleet</strong><span>The server may be waking up. Your page is ready; vehicle data will appear as soon as the connection is available.</span><button className="button button-outline" onClick={()=>setRetryCount(count=>count+1)}>Try again</button></div> : homeVehicles.length ? <div className="vehicle-grid">{homeVehicles.map(v=><VehicleCard key={v.id} vehicle={v}/>)}</div> : <div className="empty-fleet"><Sparkles size={23}/><strong>No published vehicles yet</strong><span>Add and publish your cars and bikes in the shop admin to show them here.</span><Link href="/admin" className="button button-outline">Open shop admin</Link></div>}
     </div></section>
 
     <section className="ai-home-promo"><div className="container ai-home-inner"><div><span className="section-kicker">A SMARTER WAY TO CHOOSE</span><h2>Your trip, in your words.<br/><em>Your ride, thoughtfully matched.</em></h2><p>Tell the RoadNest assistant your group size, budget and travel plans. It’ll explore the real shop fleet and help you narrow it down.</p><Link className="button button-primary" href="/ai-planner">Build my rental plan <ArrowRight size={16}/></Link></div><div className="ai-home-preview"><div className="preview-top"><span className="preview-dot"/><strong>ROADNEST AI</strong><small>RENTAL PLANNER</small></div><span className="preview-question">“Need a comfortable SUV for a 3-day family trip, under ₹3,000 per day.”</span><div className="preview-answer"><Sparkles size={15}/><span>I'll look through our available fleet options and help you compare the best fit.</span></div><div className="preview-tags"><span>Family trip</span><span>3 days</span><span>Under ₹3,000/day</span></div></div></div></section>
