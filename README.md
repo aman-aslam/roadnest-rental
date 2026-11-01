@@ -298,7 +298,7 @@ The repository includes a GitHub Actions workflow that installs from the root lo
 - Root directory: `apps/api`
 - Build command: `npm install && npx prisma generate && npx nest build`
 - Start command: `node dist/src/main.js`
-- Pre-deploy command: `npx prisma migrate deploy` (applies checked-in migrations, including MPV and booking-overlap protection)\n- Health check path: `/api/health`
+- Pre-deploy command: `npx prisma migrate deploy` (applies checked-in migrations, including MPV and booking-overlap protection)\n- Health check path: `/api/health` (lightweight; no database query)
 
 Required API environment variables:
 
@@ -321,7 +321,7 @@ Optional AI variables are `OPENAI_API_KEY`, `OPENAI_BASE_URL`, and `OPENAI_MODEL
 - `NEXT_PUBLIC_API_URL=/api`
 - `API_ORIGIN=https://roadnest-api.onrender.com`
 
-The Next.js rewrites proxy `/api/*` and legacy `/vehicle-images/*` through the web origin. This lets the browser keep the HTTP-only session cookie on the frontend origin rather than depending on cross-site third-party cookies.
+The Next.js rewrites proxy `/api/*` and legacy `/vehicle-images/*` through the web origin. This lets the browser keep the HTTP-only session cookie on the frontend origin rather than depending on cross-site third-party cookies. On first page load, the web app also makes a bounded, one-time `/api/health/ready` request in the background to wake the API and Neon while the visitor is viewing the page; this does not keep either free service permanently awake.
 
 ### Private R2 bucket
 
