@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, CalendarDays, CheckCircle2, Fuel, Gauge, MapPin, ShieldCheck, Users, Zap } from 'lucide-react';
-import { api, money } from '@/lib/api';
+import { api, money, assetUrl } from '@/lib/api';
 import { VehiclePhoto } from '@/components/vehicle-photo';
 
 function toLocalInput(date: Date) { const offset=date.getTimezoneOffset(); return new Date(date.getTime()-offset*60000).toISOString().slice(0,16); }
