@@ -77,7 +77,7 @@ export class BookingsService {
     let customer = await this.prisma.user.findUnique({ where: { phone: dto.customerPhone } });
     if (!customer) {
       const tempPassword = randomBytes(24).toString('hex');
-      customer = await this.prisma.user.create({ data: { name: dto.customerName, phone: dto.customerPhone, email: dto.customerEmail?.toLowerCase(), passwordHash: await bcrypt.hash(tempPassword, 12), role: 'CUSTOMER' } });
+      customer = await this.prisma.user.create({ data: { name: dto.customerName, phone: dto.customerPhone, email: dto.customerEmail?.trim().toLowerCase() || null, passwordHash: await bcrypt.hash(tempPassword, 12), role: 'CUSTOMER' } });
     } else if (customer.role !== 'CUSTOMER') throw new BadRequestException('This phone number belongs to a staff account.');
     const data = this.bookingData(vehicle, pickupAt, returnAt, 'WALK_IN', customer.id, { ...dto, pickupLocation: vehicle.pickupLocation, returnLocation: vehicle.pickupLocation });
     try {
