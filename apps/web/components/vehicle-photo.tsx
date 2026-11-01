@@ -9,9 +9,10 @@ type VehiclePhotoProps = {
   category?: string;
   alt: string;
   className?: string;
+  compact?: boolean;
 };
 
-export function VehiclePhoto({ src, type, category, alt, className = '' }: VehiclePhotoProps) {
+export function VehiclePhoto({ src, type, category, alt, className = '', compact = false }: VehiclePhotoProps) {
   const [showSample, setShowSample] = useState(!src);
   const [sampleFailed, setSampleFailed] = useState(false);
   const sampleUrl = fallbackVehicleImage(type, category);
@@ -40,7 +41,7 @@ export function VehiclePhoto({ src, type, category, alt, className = '' }: Vehic
       )}
       {showSample && (
         <span className="vehicle-photo-disclaimer">
-          Sample photo · Actual vehicle photo not uploaded
+          {compact ? 'Sample photo' : 'Sample photo · Actual vehicle photo not uploaded'}
         </span>
       )}
     </div>
