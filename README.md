@@ -345,3 +345,8 @@ The Next.js rewrites proxy `/api/*` and legacy `/vehicle-images/*` through the w
 Create a private R2 bucket and an S3-compatible access key limited to that bucket with object read/write permissions. Do not enable public bucket access for identity documents. The API stores generated object keys in Neon; file downloads require an authenticated admin/staff session. New document and handover uploads fail with a clear service error until all four R2 environment variables are configured. The API also applies a PostgreSQL exclusion constraint to prevent overlapping active bookings per vehicle; the migration checks for existing conflicts and stops safely if it finds any.
 
 Existing vehicle, booking and user rows are not deleted by these changes. Existing files that were stored on Render's ephemeral filesystem may need to be uploaded again if the old files have already disappeared.
+
+
+### Vehicle photo fallback
+
+When a vehicle does not have an uploaded fleet photo, the web app displays a generic Unsplash vehicle reference image based on vehicle type/category. The image is labelled **“Sample photo · Actual vehicle photo not uploaded”** so customers are not led to believe it depicts the exact rental vehicle. If an uploaded image URL fails, the same fallback is shown. Upload the real vehicle photographs in Shop Admin → Vehicles → Edit Vehicle (up to 8 photos per vehicle).
