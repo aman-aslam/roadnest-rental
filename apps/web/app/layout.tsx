@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import './globals.css';
+import './premium.css';
 import { SiteNav } from '@/components/site-nav';
 import { AiRentalAssistant } from '@/components/ai-rental-assistant';
 import { ApiWarmup } from '@/components/api-warmup';
