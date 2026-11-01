@@ -105,7 +105,8 @@ export class R2StorageService {
       response = await fetch(request.url, {
         method: 'PUT',
         headers: request.headers,
-        body: request.body,
+        // Node's fetch BodyInit typings accept Uint8Array (not Buffer on all TS/Node versions).
+        body: request.body ? new Uint8Array(request.body) : undefined,
         signal: AbortSignal.timeout(60000),
       });
     } catch {
