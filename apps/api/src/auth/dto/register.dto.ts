@@ -10,8 +10,8 @@ export class RegisterDto {
   email?: string;
 
   @IsOptional()
-  @Transform(({ value }) => typeof value === 'string' ? value.replace(/[\\s()-]/g, '') : value)
-  @Matches(/^\\+?[0-9]{10,15}$/, {
+  @Transform(({ value }) => typeof value === 'string' ? value.replace(/[\s()-]/g, '') : value)
+  @Matches(/^\+?[0-9]{10,15}$/, {
     message: 'phone must contain 10–15 digits, optionally prefixed with + country code.',
   })
   phone?: string;
