@@ -1,5 +1,6 @@
 import { Body, Controller, Get, Post, Req, Res, UseGuards } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { JwtService } from '@nestjs/jwt';
 import { AuthGuard } from '@nestjs/passport';
 import { Request, Response } from 'express';
 import { AuthService } from './auth.service';
@@ -8,7 +9,11 @@ import { LoginDto } from './dto/login.dto';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private auth: AuthService, private config: ConfigService) {}
+  constructor(
+    private auth: AuthService,
+    private config: ConfigService,
+    private jwt: JwtService,
+  ) {}
 
   private cookieBaseOptions() {
     const secure = this.config.get('COOKIE_SECURE') === 'true';
@@ -45,6 +50,20 @@ export class AuthController {
     const result = await this.auth.login(dto);
     res.cookie('rn_token', result.token, this.cookieOptions());
     return { user: result.user };
+  }
+
+  @Post('upload-token')
+  @UseGuards(AuthGuard('jwt'))
+  async uploadToken(@Req() req: Request & { user: any }) {
+    // Uploads go directly from the browser to Render to avoid serverless
+    // request-body limits. This token expires quickly and carries the same
+    // authenticated user's permissions as the existing session cookie.
+    const token = await this.jwt.signAsync(
+      { sub: req.user.id, role: req.user.role },
+      { expiresIn: '5m' },
+    );
+
+    return { token, expiresInSeconds: 300 };
   }
 
   @Post('logout')
