@@ -42,12 +42,6 @@ export class AiService {
       'https://api.openai.com/v1'
     ).replace(/\/+$/, '');
 
-    console.log('AI CONFIG CHECK:', {
-      apiKeyLoaded: Boolean(this.apiKey),
-      apiKeyLength: this.apiKey.length,
-      baseUrl: this.baseUrl,
-      model: this.model,
-    });
   }
 
   private async completion(messages: any[], json = false): Promise<string> {
@@ -69,15 +63,9 @@ export class AiService {
       throw new BadGatewayException('The AI service could not be reached. Please try again.');
     }
     if (!response.ok) {
-      const detail = await response.text().catch(() => '');
-
-      console.error('OPENROUTER ERROR:', {
-        status: response.status,
-        detail,
-      });
-
+      // Do not log or return provider response bodies; they may contain user data.
       throw new BadGatewayException(
-        `AI provider error (${response.status}). ${detail.slice(0, 500)}`,
+        `AI provider error (${response.status}). Please try again later.`,
       );
     }
     const payload: any = await response.json();
@@ -96,7 +84,6 @@ Analyse only details that are reasonably visible or inferable from the supplied 
 type (CAR or BIKE), category (one of HATCHBACK, SEDAN, SUV, MPV, LUXURY, SPORTS_BIKE, SCOOTER, MOTORCYCLE, ELECTRIC_BIKE), brand, model, variant, displayName, color, fuelType (PETROL, DIESEL, ELECTRIC, HYBRID, CNG or null), transmission (MANUAL, AUTOMATIC or null), seats (number or null), engineCc (number or null), features (string array), description (short factual listing description), confidence (object mapping each suggested field to high/medium/low), needsVerification (string array).
 Do not infer registration number, exact model year, exact variant, engine capacity, legal ownership, or unseen mechanical features from appearance. For uncertain specifications use null or a low confidence rating and explain them in needsVerification. Do not include price or registration number. Output JSON only.`;
     const content = await this.completion([{ role: 'user', content: [{ type: 'text', text: prompt }, ...imageParts] }], true);
-    console.log('AI RAW RESPONSE:', content);
     try {
       const draft = JSON.parse(content) as AiVehicleDraft;
       if (!['CAR', 'BIKE'].includes(draft.type)) draft.type = 'CAR';
