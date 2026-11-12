@@ -71,7 +71,8 @@ export class VehiclesController {
     const folder = 'roadnest/vehicles';
     const publicId = `${Date.now()}-${randomBytes(8).toString('hex')}`;
     const signatureParams = `folder=${folder}&public_id=${publicId}&timestamp=${timestamp}`;
-    const signature = createHash('sha1')
+    // Cloudinary accepts SHA-256 signatures; prefer it over legacy SHA-1.
+    const signature = createHash('sha256')
       .update(`${signatureParams}${apiSecret}`)
       .digest('hex');
 
