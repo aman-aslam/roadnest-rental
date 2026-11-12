@@ -91,7 +91,8 @@ export function dateTime(value: string) {
 export function assetUrl(url?: string) {
   if (!url) return '';
   if (url.startsWith('http://') || url.startsWith('https://')) return url;
-  return `${API_URL.replace(/\\/api\\/?$/, '')}${url.startsWith('/') ? url : `/${url}`}`;
+  const apiBase = API_URL.endsWith('/api') ? API_URL.slice(0, -4) : API_URL;
+  return `${apiBase}${url.startsWith('/') ? url : `/${url}`}`;
 }
 
 // Stock reference imagery is used only when a vehicle has no working uploaded photo.
